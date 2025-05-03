@@ -1,18 +1,30 @@
 from pykiwoom.kiwoom import *
+import datetime
+import time
 
+# 로그인
 kiwoom = Kiwoom()
-kiwoom.CommConnect(block=True)
+kiwoom.CommConnect()
 
-account_num = kiwoom.GetLoginInfo("ACCOUNT_CNT")        # 전체 계좌수
-accounts = kiwoom.GetLoginInfo("ACCNO")                 # 전체 계좌 리스트
-user_id = kiwoom.GetLoginInfo("USER_ID")                # 사용자 ID
-user_name = kiwoom.GetLoginInfo("USER_NAME")            # 사용자명
-keyboard = kiwoom.GetLoginInfo("KEY_BSECGB")            # 키보드보안 해지여부
-firewall = kiwoom.GetLoginInfo("FIREW_SECGB")           # 방화벽 설정 여부
+# 전종목 종목코드
+kospi = kiwoom.GetCodeListByMarket('0')
+kosdaq = kiwoom.GetCodeListByMarket('10')
+codes = kospi + kosdaq
 
-print(account_num)
-print(accounts)
-print(user_id)
-print(user_name)
-print(keyboard)
-print(firewall)
+# 문자열로 오늘 날짜 얻기
+now = datetime.datetime.now()
+today = now.strftime("%Y%m%d")
+
+# 전 종목의 일봉 데이터
+for i, code in enumerate(codes):
+    print(f"{i}/{len(codes)} {code}")
+    df = kiwoom.block_request("opt10081",
+                              종목코드=code,
+                              기준일자=today,
+                              수정주가구분=1,
+                              output="주식일봉차트조회",
+                              next=0)
+
+    out_name = f"{code}.xlsx"
+    df.to_excel(out_name)
+    time.sleep(3.6)
